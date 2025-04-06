@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Draggable Right-Side Popup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .popup {
+            min-width: 325px;
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #EF4444;
+            color: white;
+            padding: 24px  34px 24px 24px;
+            border-radius: 9px;
+            /* box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); */
+            user-select: none;
+            transform: translateY(150px);
+            transition: right 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .popup.success {
+            background: #34AB69;
+        }
+
+        .popup.success .close-btn {
+            color: #d1fae5;
+        }
+
+        .popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 0;
+            /* color: #ccc; */
+            color: #fca5a5;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border: 2px solid transparent;
+            opacity: 0;
+            transition: all 0.15s ease;
+        }
+
+        .popup:hover .close-btn {
+            opacity: 1;
+        }
+
+        .popup .close-btn:hover {
+            color: #fef2f2;
+        }
+
+        .popup .close-btn:focus {
+            border: 2px solid rgb(248 113 113 / 1);
+            border-radius: 9px;
+        }
+
+        .popup .close-btn svg {
+            width: 22px;
+            height: 17px;
+            position: relative;
+            top: 1px;
+        }
+        
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message .title {
+            font-size: 16px;
+        }
+
+        .message .sub-title {
+            font-size: 13px;
+            opacity: .9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="error" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Notification Error</button>
+    <button class="success" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Notification Success</button>
+
+    <div class="popup" id="popup">
+        <button class="close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+        <div class="message">   
+            <div class="title">Missing information</div>
+            <div class="sub-title">Please enter the shopper's name</div>
+        </div>
+    </div>
+
+    <script>
+        const popup = document.getElementById('popup');
+        const style = getComputedStyle(popup);
+        // Calculate width and height, using fallback for right if it's not set
+        const width = popup.offsetWidth + (style.right ? parseInt(style.right) : 0);
+        const height = popup.offsetHeight + (style.right ? parseInt(style.right) : 0);
+        let timeoutId;
+        let isDragging = false;
+        let startX = 0;
+        let deltaX = 0;
+
+
+        document.querySelector("button.error").addEventListener("click", function() {
+            showPopup({
+                mode: "error",
+                title: "Missing information",
+                subTitle: "Please enter the shopper's name",
+            });
+        });
+
+        document.querySelector("button.success").addEventListener("click", function() {
+            showPopup({
+                mode: "success",
+                title: "Missing information",
+                subTitle: "Please enter the shopper's name",
+            });
+        });
+
+        showPopup({
+            mode: "error",
+            title: "Missing information",
+            subTitle: "Please enter the shopper's name",
+        });
+
+        function showPopup(options={}) {
+            const { mode = "error",title,subTitle } = options;
+
+            // Ensure the popup starts with a clean state before adding the new class
+            popup.classList.remove('success', 'error');
+            popup.classList.add(mode);
+
+            // Set the content dynamically
+            popup.querySelector('.title').textContent = title;
+            popup.querySelector('.sub-title').textContent = subTitle;
+
+            // Reset position (off-screen)
+            popup.style.transition = 'none';
+            popup.style.transform = `translateY(150px)`;
+
+            // Force reflow to apply the above instantly
+            popup.offsetHeight; // triggers a reflow
+
+            // Animate back in
+            popup.style.transition = 'right 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            popup.style.transform = 'translateY(0)';
+
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                // closePopup();
+            }, 5000); // Auto close after 5s
+        }
+
+        function closePopup() {
+            popup.style.right = `-${width}px`;
+
+            setTimeout(() => {
+                popup.style.transition = 'none';
+                popup.style.transform = '';
+                popup.style.right = '';
+            }, 500);
+        }
+
+        popup.querySelector(".close-btn").addEventListener("click", function() {
+            closePopup();
+        });
+
+        popup.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            popup.style.transition = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            deltaX = e.clientX - startX;
+            if (deltaX < 0) return; // Only drag right
+            popup.style.transform = `translate(${deltaX}px, 0)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            popup.style.transition = 'right 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            if (isDragging) {
+                if (deltaX > 55) {
+                    closePopup(); // Close only if moved more than 50px right
+                } else {
+                    popup.style.transition = '';
+                    popup.style.transform = "translate(0, 0)";
+                }
+                isDragging = false;
+                deltaX = 0;
+            }
+        });
+    </script>
+
+</body>
+</html>
