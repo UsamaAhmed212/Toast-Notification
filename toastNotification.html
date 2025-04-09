@@ -92,17 +92,25 @@
     <button class="error" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Notification Error</button>
     <button class="success" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Notification Success</button>
 
-    <div class="popup" id="popup">
-        <button class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-        </button>
-        <div class="message">   
-            <div class="title">Missing information</div>
-            <div class="sub-title">Please enter the shopper's name</div>
-        </div>
-    </div>
-
     <script>
+        const popupHTML = `
+        <div class="popup" id="popup">
+            <button class="close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+            </button>
+            <div class="message">   
+            <div class="title"></div>
+            <div class="sub-title"></div>
+            </div>
+        </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', popupHTML);
+
         const popup = document.getElementById('popup');
         const style = getComputedStyle(popup);
         // Calculate width and height, using fallback for right if it's not set
@@ -160,8 +168,8 @@
 
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
-                // closePopup();
-            }, 5000); // Auto close after 5s
+                closePopup();
+            }, 7000); // Auto close after 7s
         }
 
         function closePopup() {
